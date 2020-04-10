@@ -1,8 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-// const LameOptions_1 = require("./LameOptions");
 const fs = require("fs");
-const Lame = require("node-lame").Lame;
 const StringDecoder = require('string_decoder').StringDecoder;
 
 const BYTE_LENGTH = 4;
@@ -88,30 +86,14 @@ class Slicer {
           // get chunk buffer
           let chunkBuffer = this.getChunk(metaBuffer, chunkStartTime, chunkDuration, chunkStartBitIndex, chunkEndBitIndex);
 
-          // need mp3 outputs
-          if( extension === 'mp3' ){
-            // need to encode segmented wav buffer to mp3
-            let encoder = new Lame({ "output": chunkPath, "bitrate": 128});
-            encoder.setBuffer(chunkBuffer);
-            encoder.encode()
-              .then( () => { 
-                // to be able to tell when to call the output callback:
-                totalEncodedTime += this.chunkDuration;
-                // run arg callback only at encoding's very end
-                if( totalEncodedTime >= totalDuration ){ callback( chunkList ); }
-              })
-              .catch( (err) => {console.error(err);} );
-          }
           // need wav output
-          else{
-            fs.writeFile( chunkPath, chunkBuffer, (err) => {
-              if( err ){ throw err; }
-              // to be able to tell when to call the output callback:
-              totalEncodedTime += this.chunkDuration;
-              // run arg callback only at encoding's very end
-              if( totalEncodedTime >= totalDuration ){ callback( chunkList ); }
-            });
-          }
+          fs.writeFile( chunkPath, chunkBuffer, (err) => {
+            if( err ){ throw err; }
+            // to be able to tell when to call the output callback:
+            totalEncodedTime += this.chunkDuration;
+            // run arg callback only at encoding's very end
+            if( totalEncodedTime >= totalDuration ){ callback( chunkList ); }
+          });
 
           // incr.
           chunkList.push( { name:chunkPath, start:chunkStartTime, duration: chunkDuration, overlapStart: startOffset, overlapEnd: endOffset });

@@ -5,9 +5,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 Object.defineProperty(exports, "__esModule", { value: true });
-// const LameOptions_1 = require("./LameOptions");
 var fs = require("fs");
-var Lame = require("node-lame").Lame;
 var StringDecoder = require('string_decoder').StringDecoder;
 
 var BYTE_LENGTH = 4;
@@ -106,36 +104,18 @@ var Slicer = function () {
           // get chunk buffer
           var chunkBuffer = _this.getChunk(metaBuffer, chunkStartTime, chunkDuration, chunkStartBitIndex, chunkEndBitIndex);
 
-          // need mp3 outputs
-          if (extension === 'mp3') {
-            // need to encode segmented wav buffer to mp3
-            var encoder = new Lame({ "output": chunkPath, "bitrate": 128 });
-            encoder.setBuffer(chunkBuffer);
-            encoder.encode().then(function () {
-              // to be able to tell when to call the output callback:
-              totalEncodedTime += _this.chunkDuration;
-              // run arg callback only at encoding's very end
-              if (totalEncodedTime >= totalDuration) {
-                callback(chunkList);
-              }
-            }).catch(function (err) {
-              console.error(err);
-            });
-          }
           // need wav output
-          else {
-              fs.writeFile(chunkPath, chunkBuffer, function (err) {
-                if (err) {
-                  throw err;
-                }
-                // to be able to tell when to call the output callback:
-                totalEncodedTime += _this.chunkDuration;
-                // run arg callback only at encoding's very end
-                if (totalEncodedTime >= totalDuration) {
-                  callback(chunkList);
-                }
-              });
+          fs.writeFile(chunkPath, chunkBuffer, function (err) {
+            if (err) {
+              throw err;
             }
+            // to be able to tell when to call the output callback:
+            totalEncodedTime += _this.chunkDuration;
+            // run arg callback only at encoding's very end
+            if (totalEncodedTime >= totalDuration) {
+              callback(chunkList);
+            }
+          });
 
           // incr.
           chunkList.push({ name: chunkPath, start: chunkStartTime, duration: chunkDuration, overlapStart: startOffset, overlapEnd: endOffset });
